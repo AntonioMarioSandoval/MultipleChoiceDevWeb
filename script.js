@@ -52,15 +52,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const studyThematicFilter = document.getElementById('study-thematic-filter');
     const studyQuestionsContainer = document.getElementById('study-questions-container');
     const scrollToTopBtn = document.getElementById('scroll-to-top-btn');
-
+    const subjectSelectExam = document.getElementById('subject-select-exam');
+    const subjectInput = document.getElementById('subject-input'); 
+    const studySubjectFilter = document.getElementById('study-subject-filter');
     const sunIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
     const moonIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
     const editIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
     const deleteIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`;
     const xIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
-
     let allQuestions = [], currentQuizQuestions = [], userAnswers = [], timer, timeLeft;
     let selectedThematic = null;
+    let selectedSubject = null; 
 
     const applyTheme = (theme) => {
         body.classList.remove('light-mode', 'dark-mode');
@@ -92,13 +94,14 @@ document.addEventListener('DOMContentLoaded', () => {
             
             defaultQuestions.forEach(q => {
                 if (!q.thematic) q.thematic = 'parcial1'; 
+                if (!q.subject) q.subject = 'Tecnologia de Redes';
             });
             
             allQuestions = defaultQuestions;
             saveQuestions(); 
             
         } catch (error) {
-            console.error("No se pudieron cargar las preguntas predeterminadas. Inicializando con lista vacía.", error);
+            console.error("No se pudieron cargar las preguntas predeterminadas.", error);
             allQuestions = []; 
         }
     };
@@ -125,6 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formTitle.textContent = 'Añadir Nueva Pregunta';
         cancelEditBtn.classList.add('hidden');
         if (thematicSelector) thematicSelector.value = 'parcial1'; 
+        if (subjectInput) subjectInput.value = '';
     };
     
     if(cancelEditBtn) cancelEditBtn.addEventListener('click', resetForm);
@@ -196,7 +200,8 @@ document.addEventListener('DOMContentLoaded', () => {
         allQuestions.forEach((q, index) => {
             const li = document.createElement('li');
             const thematicDisplay = q.thematic === 'parcial1' ? 'P1' : 'P2';
-            li.innerHTML = `<input type="checkbox" data-question-id="${q.id}" class="question-checkbox"><span title="${q.question}">[${thematicDisplay}] ${q.question.substring(0, 30)}...</span><div class="action-buttons"><button data-index="${index}" class="edit-btn">${editIcon}</button><button data-index="${index}" class="delete-btn">${deleteIcon}</button></div>`;
+            const subjectDisplay = q.subject || 'Redes';
+            li.innerHTML = `<input type="checkbox" data-question-id="${q.id}" class="question-checkbox"><span title="${q.question}">[${subjectDisplay} - ${thematicDisplay}] ${q.question.substring(0, 30)}...</span><div class="action-buttons"><button data-index="${index}" class="edit-btn">${editIcon}</button><button data-index="${index}" class="delete-btn">${deleteIcon}</button></div>`;
             questionsList.appendChild(li);
         });
         
@@ -253,6 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const correctIndex = Array.from(answerNodes).indexOf(correctRadio.closest('.answer-input-container'));
         
         const thematic = thematicSelector.value;
+        const subject = subjectInput ? subjectInput.value.trim() : 'Redes';
 
         const questionData = { 
             id: questionIdInput.value ? parseInt(questionIdInput.value) : Date.now(), 
@@ -260,7 +266,8 @@ document.addEventListener('DOMContentLoaded', () => {
             imageUrl: imageData, 
             answers: answers, 
             correct: correctIndex,
-            thematic: thematic 
+            thematic: thematic,
+            subject: subject || 'Redes'
         };
 
         if (questionIdInput.value) {
@@ -295,6 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
             questionInput.value = questionToEdit.question;
             
             if (thematicSelector) thematicSelector.value = questionToEdit.thematic || 'parcial1';
+            if (subjectInput) subjectInput.value = questionToEdit.subject || 'Redes';
 
             currentImagePreview.innerHTML = '';
             if (questionToEdit.imageUrl?.startsWith('data:image')) {
@@ -333,6 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (Array.isArray(importedQuestions) && confirm('¿Quieres reemplazar las preguntas actuales con las del archivo? (Se restablecerán al recargar la página)')) {
                     importedQuestions.forEach(q => {
                         if (!q.thematic) q.thematic = 'parcial1'; 
+                        if (!q.subject) q.subject = 'Redes';
                     });
                     allQuestions = importedQuestions;
                     saveQuestions(); renderAdminList(); resetForm();
@@ -343,46 +352,45 @@ document.addEventListener('DOMContentLoaded', () => {
         if(event.target.files[0]) fileReader.readAsText(event.target.files[0]);
     });
     
-    const showExamSettings = () => {
-        const p1Questions = allQuestions.filter(q => q.thematic === 'parcial1');
-        const p2Questions = allQuestions.filter(q => q.thematic === 'parcial2');
+    const updateThematicOptions = () => {
+        const currentSubject = subjectSelectExam ? subjectSelectExam.value : 'Redes';
+        const subjectQuestions = allQuestions.filter(q => (q.subject || 'Redes') === currentSubject);
+        
+        const p1Questions = subjectQuestions.filter(q => q.thematic === 'parcial1');
+        const p2Questions = subjectQuestions.filter(q => q.thematic === 'parcial2');
         
         const totalP1 = p1Questions.length;
         const totalP2 = p2Questions.length;
 
-        if (totalP1 === 0 && totalP2 === 0) { 
-            alert('No hay preguntas disponibles para realizar el examen.'); 
-            return; 
-        }
-
-        if (examSettingsTitle) examSettingsTitle.textContent = 'Configurar Examen';
-
         if (thematicSelectExam) {
+            const previousThematic = thematicSelectExam.value;
             thematicSelectExam.innerHTML = '';
-            if (totalP1 > 0) {
-                thematicSelectExam.innerHTML += `<option value="parcial1">Parcial 1 (Total: ${totalP1})</option>`;
-            }
-            if (totalP2 > 0) {
-                thematicSelectExam.innerHTML += `<option value="parcial2">Parcial 2 (Total: ${totalP2})</option>`;
-            }
-            if (totalP1 > 0 && totalP2 > 0) {
-                thematicSelectExam.innerHTML += `<option value="ambos">Ambos (Total: ${totalP1 + totalP2})</option>`;
+            if (totalP1 > 0) thematicSelectExam.innerHTML += `<option value="parcial1">Parcial 1 (Total: ${totalP1})</option>`;
+            if (totalP2 > 0) thematicSelectExam.innerHTML += `<option value="parcial2">Parcial 2 (Total: ${totalP2})</option>`;
+            if (totalP1 > 0 && totalP2 > 0) thematicSelectExam.innerHTML += `<option value="ambos">Ambos (Total: ${totalP1 + totalP2})</option>`;
+            
+            if (thematicSelectExam.querySelector(`option[value="${previousThematic}"]`)) {
+                thematicSelectExam.value = previousThematic;
             }
         }
         
-        const initialThematic = thematicSelectExam.value;
-        updateSettingsForThematic(initialThematic);
-
-        examSettingsModal.classList.add('active');
+        updateSettingsForThematic();
     };
 
-    const updateSettingsForThematic = (thematicKey) => {
-        let questions;
-        if (thematicKey === 'ambos') {
-            questions = allQuestions;
-        } else {
-            questions = allQuestions.filter(q => q.thematic === thematicKey);
+    if (subjectSelectExam) {
+        subjectSelectExam.addEventListener('change', updateThematicOptions);
+    }
+
+    const updateSettingsForThematic = () => {
+        const currentSubject = subjectSelectExam ? subjectSelectExam.value : 'Redes';
+        const thematicKey = thematicSelectExam ? thematicSelectExam.value : 'ambos';
+        
+        let questions = allQuestions.filter(q => (q.subject || 'Redes') === currentSubject);
+        
+        if (thematicKey !== 'ambos') {
+            questions = questions.filter(q => q.thematic === thematicKey);
         }
+        
         const totalQuestions = questions.length;
         
         if (totalQuestions > 0) {
@@ -401,19 +409,38 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
     if (thematicSelectExam) {
-        thematicSelectExam.addEventListener('change', (e) => {
-            updateSettingsForThematic(e.target.value);
-        });
+        thematicSelectExam.addEventListener('change', updateSettingsForThematic);
     }
 
-    if(settingsStartBtn) settingsStartBtn.addEventListener('click', () => {
-        const thematicKey = thematicSelectExam.value;
-        let questionsSource;
+    const showExamSettings = () => {
+        if (allQuestions.length === 0) { 
+            alert('No hay preguntas disponibles para realizar el examen.'); 
+            return; 
+        }
+
+        const subjects = [...new Set(allQuestions.map(q => q.subject || 'Redes'))];
         
-        if (thematicKey === 'ambos') {
-            questionsSource = allQuestions;
-        } else {
-            questionsSource = allQuestions.filter(q => q.thematic === thematicKey);
+        if (subjectSelectExam) {
+            subjectSelectExam.innerHTML = '';
+            subjects.forEach(sub => {
+                subjectSelectExam.innerHTML += `<option value="${sub}">${sub}</option>`;
+            });
+            subjectSelectExam.value = subjects.includes(selectedSubject) ? selectedSubject : subjects[0];
+        }
+
+        if (examSettingsTitle) examSettingsTitle.textContent = 'Configurar Examen';
+        
+        updateThematicOptions(); 
+        examSettingsModal.classList.add('active');
+    };
+
+    if(settingsStartBtn) settingsStartBtn.addEventListener('click', () => {
+        const currentSubject = subjectSelectExam ? subjectSelectExam.value : 'Redes';
+        const thematicKey = thematicSelectExam.value;
+        
+        let questionsSource = allQuestions.filter(q => (q.subject || 'Redes') === currentSubject);
+        if (thematicKey !== 'ambos') {
+            questionsSource = questionsSource.filter(q => q.thematic === thematicKey);
         }
         
         const totalQuestions = questionsSource.length;
@@ -430,6 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         selectedThematic = thematicKey; 
+        selectedSubject = currentSubject; 
 
         examSettingsModal.classList.remove('active');
         startGame(duration, count, questionsSource);
@@ -547,19 +575,21 @@ document.addEventListener('DOMContentLoaded', () => {
             thematicName = 'Ambos Parciales';
         }
         
-        finalSummary.innerHTML = `<p class="summary-score">Examen de ${thematicName}: ${score} de ${totalQuestions} correctas.</p><p class="summary-status ${isApproved ? 'approved' : 'failed'}">${isApproved ? 'APROBADO' : 'DESAPROBADO'}</p>`;
+        finalSummary.innerHTML = `<p class="summary-score">Examen de ${selectedSubject} - ${thematicName}: ${score} de ${totalQuestions} correctas.</p><p class="summary-status ${isApproved ? 'approved' : 'failed'}">${isApproved ? 'APROBADO' : 'DESAPROBADO'}</p>`;
     };
     
     const renderStudyList = () => {
         if (!studyQuestionsContainer) return;
         
-        const filterValue = studyThematicFilter.value;
-        let questionsToRender;
-
-        if (filterValue === 'todos') {
-            questionsToRender = allQuestions;
-        } else {
-            questionsToRender = allQuestions.filter(q => q.thematic === filterValue);
+        const subjectValue = studySubjectFilter ? studySubjectFilter.value : 'todas';
+        const thematicValue = studyThematicFilter ? studyThematicFilter.value : 'todos';
+        
+        let questionsToRender = allQuestions;
+        if (subjectValue !== 'todas') {
+            questionsToRender = questionsToRender.filter(q => (q.subject || 'Redes') === subjectValue);
+        }
+        if (thematicValue !== 'todos') {
+            questionsToRender = questionsToRender.filter(q => q.thematic === thematicValue);
         }
 
         studyQuestionsContainer.innerHTML = '';
@@ -585,11 +615,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const thematicDisplay = question.thematic === 'parcial1' ? 'P1' : 'P2';
+            const subjectDisplay = question.subject || 'Tecnologia de Redes';
             
             questionItemDiv.innerHTML = `
                 <div class="study-question-header">
                     <h3>${qIndex + 1}) ${question.question}</h3>
-                    <span class="study-thematic-tag">[${thematicDisplay}]</span>
+                    <span class="study-thematic-tag">[${subjectDisplay} - ${thematicDisplay}]</span>
                 </div>
                 ${imageHtml}
                 <ul class="answers-list study-answers-list">${answersHtml}</ul>
@@ -601,35 +632,54 @@ document.addEventListener('DOMContentLoaded', () => {
             img.addEventListener('click', () => openImageViewer(img.src));
         });
     };
-    
+
+    const updateStudyThematicFilter = () => {
+        if (!studyThematicFilter) return;
+        const currentSubject = studySubjectFilter ? studySubjectFilter.value : 'todas';
+        
+        let questions = allQuestions;
+        if (currentSubject !== 'todas') {
+            questions = questions.filter(q => (q.subject || 'Redes') === currentSubject);
+        }
+
+        const p1Count = questions.filter(q => q.thematic === 'parcial1').length;
+        const p2Count = questions.filter(q => q.thematic === 'parcial2').length;
+        
+        studyThematicFilter.innerHTML = `<option value="todos">Todos los parciales (Total: ${questions.length})</option>`;
+        if (p1Count > 0) studyThematicFilter.innerHTML += `<option value="parcial1">Parcial 1 (Total: ${p1Count})</option>`;
+        if (p2Count > 0) studyThematicFilter.innerHTML += `<option value="parcial2">Parcial 2 (Total: ${p2Count})</option>`;
+        
+        renderStudyList();
+    };
+
     function openImageViewer(src) { imageViewerImg.setAttribute('src', src); imageViewerModal.classList.add('active'); }
     function closeImageViewer() { imageViewerModal.classList.remove('active'); }
-    imageViewerClose.addEventListener('click', closeImageViewer);
-    imageViewerModal.addEventListener('click', (e) => { if (e.target === imageViewerModal) closeImageViewer(); });
-    document.addEventListener('keydown', (e) => { if (e.key === "Escape" && imageViewerModal.classList.contains('active')) closeImageViewer(); });
-
+    if(imageViewerClose) imageViewerClose.addEventListener('click', closeImageViewer);
+    if(imageViewerModal) imageViewerModal.addEventListener('click', (e) => { if (e.target === imageViewerModal) closeImageViewer(); });
+    document.addEventListener('keydown', (e) => { if (e.key === "Escape" && imageViewerModal && imageViewerModal.classList.contains('active')) closeImageViewer(); });
 
     if(addAnswerBtn) addAnswerBtn.addEventListener('click', () => addAnswerInput());
     if(startGameBtn) startGameBtn.addEventListener('click', showExamSettings);
     if(adminQuestionsBtn) adminQuestionsBtn.addEventListener('click', () => { renderAdminList(); resetForm(); showScreen('admin-screen'); });
     
     if(studyBtn) studyBtn.addEventListener('click', () => {
-        const p1Count = allQuestions.filter(q => q.thematic === 'parcial1').length;
-        const p2Count = allQuestions.filter(q => q.thematic === 'parcial2').length;
-        
-        studyThematicFilter.innerHTML = `<option value="todos">Todos (Total: ${allQuestions.length})</option>`;
-        if (p1Count > 0) {
-            studyThematicFilter.innerHTML += `<option value="parcial1">Parcial 1 (Total: ${p1Count})</option>`;
-        }
-        if (p2Count > 0) {
-            studyThematicFilter.innerHTML += `<option value="parcial2">Parcial 2 (Total: ${p2Count})</option>`;
+        if (studySubjectFilter) {
+            const subjects = [...new Set(allQuestions.map(q => q.subject || 'Redes'))];
+            studySubjectFilter.innerHTML = `<option value="todas">Todas las Materias</option>`;
+            subjects.forEach(sub => {
+                studySubjectFilter.innerHTML += `<option value="${sub}">${sub}</option>`;
+            });
+            studySubjectFilter.value = subjects.length > 0 ? subjects[0] : 'todas';
         }
         
-        renderStudyList();
+        updateStudyThematicFilter();
         showScreen('study-screen');
     });
+
+    if (studySubjectFilter) studySubjectFilter.addEventListener('change', updateStudyThematicFilter);
+    if (studyThematicFilter) studyThematicFilter.addEventListener('change', renderStudyList);
+
     if(studyBackToMenuBtn) studyBackToMenuBtn.addEventListener('click', () => showScreen('menu-screen'));
-    if(studyThematicFilter) studyThematicFilter.addEventListener('change', renderStudyList);
 
     if(finishGameBtn) finishGameBtn.addEventListener('click', () => {
         const unansweredCount = userAnswers.filter(answer => answer === null).length;
@@ -670,4 +720,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     initializeApp();
+
+    
 });
